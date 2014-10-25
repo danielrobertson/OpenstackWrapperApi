@@ -19,6 +19,7 @@
           <element id="library" level="project" name="Maven: org.apache.httpcomponents:httpclient:4.0.3" />
           <element id="library" level="project" name="Maven: org.apache.httpcomponents:httpcore:4.0.1" />
           <element id="library" level="project" name="Maven: net.jcip:jcip-annotations:1.0" />
+          <element id="library" level="project" name="Maven: org.jsoup:jsoup:1.7.2" />
         </element>
       </element>
       <element id="javaee-facet-resources" facet="cs378-assignment4/web/Web" />
