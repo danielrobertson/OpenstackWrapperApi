@@ -9,10 +9,28 @@ import javax.ws.rs.core.Response;
 public class EavesdropRestService {
 
     @GET
-    @Path("/{param}")
-    public Response printMessage(@PathParam("param") String msg) {
+    @Path("/{project}/meetings/{year}")
+    public Response getMeeting(@PathParam("project") String project, @PathParam("year") int year) {
 
-        String result = "Your message : " + msg;
+        String result = "project: " + project + ", year: " + year;
+
+        return Response.status(200).entity(result).build();
+    }
+
+    @GET
+    @Path("/{project}/irclogs")
+    public Response getIrcLog(@PathParam("project") String project) {
+
+        String result = "irclog project: " + project;
+
+        return Response.status(200).entity(result).build();
+    }
+
+    @GET
+    @Path("/")
+    public Response getUnion() {
+
+        String result = "get ALL the projects";
 
         return Response.status(200).entity(result).build();
     }
