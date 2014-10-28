@@ -62,22 +62,49 @@ public class EavesdropRestService {
 
     @GET
     @Path("/")
+    @Produces("application/xml")
     public Response getUnion() {
         String urlMeetings = "http://eavesdrop.openstack.org/meetings/";
         String urlIrcLogs = "http://eavesdrop.openstack.org/irclogs/";
-        ArrayList<String> meetingLinks = getLinks(urlMeetings);
+        ArrayList<String> projects = getProjects(urlMeetings);
+        String content = getUnionResponse(urlIrcLogs, projects);
 
-        for(String link: getLinks(urlIrcLogs)) {
-            meetingLinks.add(link);
+        return Response.status(200).entity(content).build();
+    }
+
+    private ArrayList<String> getProjects(String url) {
+        ArrayList<String> projects = new ArrayList<String>();
+        Document doc = getDocument(url);
+
+        if(doc != null) {
+            Elements items = doc.select("tr td a");
+
+            for(Element item: items) {
+                String name = item.text();
+                projects.add(name);
+            }
         }
 
-        return Response.status(200).entity("").build();
+        return projects;
+    }
+
+    private String getUnionResponse(String urlIrcLogs, ArrayList<String> links) {
+        StringBuilder content = new StringBuilder();
+        content.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        content.append("<projects>");
+        for(String link: links) {
+            content.append("<project>").append(link).append("</project>");
+        }
+        content.append("</projects>");
+
+        for(String link: getLinks(urlIrcLogs)) {
+            links.add(link);
+        }
+        return content.toString();
     }
 
     /**
      * Retrieve the links from the openstack website the user has queried
-     * @param url
-     * @return a list of links
      */
     public ArrayList<String> getLinks(String url) {
         ArrayList<String> list = new ArrayList<String>();
