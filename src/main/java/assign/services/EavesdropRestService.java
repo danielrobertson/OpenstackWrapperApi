@@ -28,6 +28,33 @@ public class EavesdropRestService {
         return Response.status(200).entity(content).build();
     }
 
+    @GET
+    @Path("/{project}/irclogs")
+    @Produces("application/xml")
+    public Response getIrcLog(@PathParam("project") String project) {
+        String url = buildUrl(project, "irclogs", null);
+        ArrayList<String> links = getLinks(url);
+        String content = getIrcLogResponse(project, links);
+        return Response.status(200).entity(content).build();
+    }
+
+    @GET
+    @Path("/")
+    @Produces("application/xml")
+    public Response getUnion() {
+        String urlMeetings = "http://eavesdrop.openstack.org/meetings/";
+        String urlIrcLogs = "http://eavesdrop.openstack.org/irclogs/";
+        ArrayList<String> projects = getProjects(urlMeetings);
+
+        /* combine with irc logs */
+        for(String project: getProjects(urlIrcLogs)) {
+            projects.add(project);
+        }
+
+        String content = getUnionResponse(urlIrcLogs, projects);
+        return Response.status(200).entity(content).build();
+    }
+
     private String getMeetingResponse(String project, ArrayList<String> links) {
         StringBuilder content = new StringBuilder();
         content.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
@@ -37,16 +64,6 @@ public class EavesdropRestService {
         }
         content.append("</project>");
         return content.toString();
-    }
-
-    @GET
-    @Path("/{project}/irclogs")
-    @Produces("application/xml")
-    public Response getIrcLog(@PathParam("project") String project) {
-        String url = buildUrl(project, "irclogs", null);
-        ArrayList<String> links = getLinks(url);
-        String content = getIrcLogResponse(project, links);
-        return Response.status(200).entity(content).build();
     }
 
     private String getIrcLogResponse(String project, ArrayList<String> links) {
@@ -60,18 +77,6 @@ public class EavesdropRestService {
         return content.toString();
     }
 
-    @GET
-    @Path("/")
-    @Produces("application/xml")
-    public Response getUnion() {
-        String urlMeetings = "http://eavesdrop.openstack.org/meetings/";
-        String urlIrcLogs = "http://eavesdrop.openstack.org/irclogs/";
-        ArrayList<String> projects = getProjects(urlMeetings);
-        String content = getUnionResponse(urlIrcLogs, projects);
-
-        return Response.status(200).entity(content).build();
-    }
-
     private ArrayList<String> getProjects(String url) {
         ArrayList<String> projects = new ArrayList<String>();
         Document doc = getDocument(url);
@@ -80,6 +85,8 @@ public class EavesdropRestService {
             Elements items = doc.select("tr td a");
 
             for(Element item: items) {
+                if (item.toString().contains("Parent Directory"))
+                    continue;
                 String name = item.text();
                 projects.add(name);
             }
@@ -88,6 +95,9 @@ public class EavesdropRestService {
         return projects;
     }
 
+    /**
+     * Build an XML response from the union of the meeting and
+     */
     private String getUnionResponse(String urlIrcLogs, ArrayList<String> links) {
         StringBuilder content = new StringBuilder();
         content.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
@@ -115,12 +125,8 @@ public class EavesdropRestService {
 
             String link;
             for(Element item: items){
-                if (item.toString().contains("Parent Directory")) {
-                    String href = item.attr("href");
-
-                    String base = url.substring(0, url.indexOf("org") + 3);
-                    link = base + href;
-                }
+                if (item.toString().contains("Parent Directory"))
+                    continue;
                 else {
                     link = url + item.attr("href");
                 }
