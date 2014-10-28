@@ -8,6 +8,7 @@ import org.jsoup.select.Elements;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -18,20 +19,45 @@ public class EavesdropRestService {
 
     @GET
     @Path("/{project}/meetings/{year}")
+    @Produces("application/xml")
     public Response getMeeting(@PathParam("project") String project, @PathParam("year") String year) {
         String url = buildUrl(project, "meetings", year);
         ArrayList<String> links = getLinks(url);
+        String content = getMeetingResponse(project, links);
 
-        return Response.status(200).entity(links.toString()).build();
+        return Response.status(200).entity(content).build();
+    }
+
+    private String getMeetingResponse(String project, ArrayList<String> links) {
+        StringBuilder content = new StringBuilder();
+        content.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        content.append("<project name=").append("\'").append(project).append("\'").append(">");
+        for(String link: links) {
+            content.append("<link>").append(link).append("</link>");
+        }
+        content.append("</project>");
+        return content.toString();
     }
 
     @GET
     @Path("/{project}/irclogs")
+    @Produces("application/xml")
     public Response getIrcLog(@PathParam("project") String project) {
         String url = buildUrl(project, "irclogs", null);
         ArrayList<String> links = getLinks(url);
+        String content = getIrcLogResponse(project, links);
+        return Response.status(200).entity(content).build();
+    }
 
-        return Response.status(200).entity(links.toString()).build();
+    private String getIrcLogResponse(String project, ArrayList<String> links) {
+        StringBuilder content = new StringBuilder();
+        content.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
+        content.append("<project name=").append("\'").append(project).append("\'").append(">");
+        for(String link: links) {
+            content.append("<link>").append(link).append("</link>");
+        }
+        content.append("</project>");
+        return content.toString();
     }
 
     @GET
@@ -116,7 +142,7 @@ public class EavesdropRestService {
             String eavesdrop = "http://eavesdrop.openstack.org/";
 
             if(type.equals("irclogs")) {
-                url = eavesdrop + type + "/%23" + project + "/";
+                url = eavesdrop + type + "/" + project + "/";
             }
             else if(type.equals("meetings") && !isBlank(year)) {
                 url = eavesdrop + type + "/" + project + "/" + year + "/";
