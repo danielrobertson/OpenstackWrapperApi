@@ -1,61 +1,20 @@
-package assign.services;
+package services;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 
-@Path("/")
-public class EavesdropRestService {
+/**
+ *  A class with various services for the eavesdrop resources to use
+ */
+public class EavesdropService {
 
-    @GET
-    @Path("/{project}/meetings/{year}")
-    @Produces("application/xml")
-    public Response getMeeting(@PathParam("project") String project, @PathParam("year") String year) {
-        String url = buildUrl(project, "meetings", year);
-        ArrayList<String> links = getLinks(url);
-        String content = getMeetingResponse(project, links);
-
-        return Response.status(200).entity(content).build();
-    }
-
-    @GET
-    @Path("/{project}/irclogs")
-    @Produces("application/xml")
-    public Response getIrcLog(@PathParam("project") String project) {
-        String url = buildUrl(project, "irclogs", null);
-        ArrayList<String> links = getLinks(url);
-        String content = getIrcLogResponse(project, links);
-        return Response.status(200).entity(content).build();
-    }
-
-    @GET
-    @Path("/")
-    @Produces("application/xml")
-    public Response getUnion() {
-        String urlMeetings = "http://eavesdrop.openstack.org/meetings/";
-        String urlIrcLogs = "http://eavesdrop.openstack.org/irclogs/";
-        ArrayList<String> projects = getProjects(urlMeetings);
-
-        /* combine with irc logs */
-        for(String project: getProjects(urlIrcLogs)) {
-            projects.add(project);
-        }
-
-        String content = getUnionResponse(urlIrcLogs, projects);
-        return Response.status(200).entity(content).build();
-    }
-
-    private String getMeetingResponse(String project, ArrayList<String> links) {
+    public String getMeetingResponse(String project, ArrayList<String> links) {
         StringBuilder content = new StringBuilder();
         content.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         content.append("<project name=").append("\'").append(project).append("\'").append(">");
@@ -63,10 +22,11 @@ public class EavesdropRestService {
             content.append("<link>").append(link).append("</link>");
         }
         content.append("</project>");
+
         return content.toString();
     }
 
-    private String getIrcLogResponse(String project, ArrayList<String> links) {
+    public String getIrcLogResponse(String project, ArrayList<String> links) {
         StringBuilder content = new StringBuilder();
         content.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         content.append("<project name=").append("\'").append(project).append("\'").append(">");
@@ -74,10 +34,11 @@ public class EavesdropRestService {
             content.append("<link>").append(link).append("</link>");
         }
         content.append("</project>");
+
         return content.toString();
     }
 
-    private ArrayList<String> getProjects(String url) {
+    public ArrayList<String> getProjects(String url) {
         ArrayList<String> projects = new ArrayList<String>();
         Document doc = getDocument(url);
 
@@ -98,7 +59,7 @@ public class EavesdropRestService {
     /**
      * Build an XML response from the union of the meeting and
      */
-    private String getUnionResponse(String urlIrcLogs, ArrayList<String> links) {
+    public String getUnionResponse(String urlIrcLogs, ArrayList<String> links) {
         StringBuilder content = new StringBuilder();
         content.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         content.append("<projects>");
@@ -110,6 +71,7 @@ public class EavesdropRestService {
         for(String link: getLinks(urlIrcLogs)) {
             links.add(link);
         }
+
         return content.toString();
     }
 
@@ -142,13 +104,14 @@ public class EavesdropRestService {
      * @param url of openstack
      * @return JSoup Document representing the openstack page
      */
-    protected Document getDocument(String url) {
+    private Document getDocument(String url) {
         Document doc = null;
         try {
             doc = getDocumentHelper(url);
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         return doc;
     }
 
@@ -158,7 +121,7 @@ public class EavesdropRestService {
      * @return JSoup Document of the page
      * @throws IOException
      */
-    protected Document getDocumentHelper(String url) throws IOException {
+    private Document getDocumentHelper(String url) throws IOException {
         return Jsoup.connect(url).get();
     }
 
@@ -169,7 +132,7 @@ public class EavesdropRestService {
      * @param year of the query to openstack
      * @return the url
      */
-    protected String buildUrl(String project, String type, String year) {
+    public String buildUrl(String project, String type, String year) {
         String url = null;
         try {
             String eavesdrop = "http://eavesdrop.openstack.org/";
@@ -187,6 +150,7 @@ public class EavesdropRestService {
         catch(MalformedURLException e) {
             e.printStackTrace();
         }
+
         return url;
     }
 
@@ -195,7 +159,8 @@ public class EavesdropRestService {
      * @param str the parameter
      * @return true if the parameter is null or empty
      */
-    boolean isBlank(String str) {
+    private boolean isBlank(String str) {
         return str == null || str.isEmpty();
     }
+
 }
